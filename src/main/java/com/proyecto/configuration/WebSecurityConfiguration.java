@@ -32,6 +32,8 @@ public class WebSecurityConfiguration {
             .requestMatchers("/configuracion/plato/obtener-by-categoria/**").hasAnyRole("MESERO", "ADMINISTRADOR")
             .requestMatchers("/configuracion/comanda/**").hasAnyRole(
                 "ADMINISTRADOR", "MESERO", "COCINERO", "CAJERO")
+            .requestMatchers("/reportes/**").hasAnyRole(
+                "ADMINISTRADOR", "MESERO", "GERENTE", "CAJERO")
             .requestMatchers("/configuracion/comprobante/**").hasAnyRole(
                 "ADMINISTRADOR", "MESERO", "GERENTE", "CAJERO")
             .requestMatchers("/configuracion/**").hasRole("ADMINISTRADOR")
