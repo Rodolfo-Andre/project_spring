@@ -505,15 +505,15 @@ export const ViewCoreFactura = function () {
         "yape",
         "bcp",
         "paypal",
-        "fisico",
       ];
       let image = "";
       const nameImage = name.toLowerCase().trim();
-      const regex = new RegExp(nameImage, "gi");
 
       arrayImage.forEach((item) => {
-        if (regex.test(item)) {
-          image = `/images/metodos-pago/${nameImage}.png`;
+        const regex = new RegExp(item, "gi");
+
+        if (regex.test(nameImage)) {
+          image = `/images/metodos-pago/${item}.png`;
         }
       });
 
