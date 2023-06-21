@@ -423,19 +423,33 @@ export const ViewCoreFactura = function () {
         data: JSON.stringify(data),
         contentType: "application/json",
       })
-        .done((response) => {
+        .done(() => {
           Swal.fire({
             title: "Comprobante registrado",
             text: "El comprobante se registró correctamente",
             icon: "success",
             confirmButtonText: "Aceptar",
           }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.href = this.contextUrl + "comanda";
-            }
+            fetch("/usuario")
+              .then((response) => response.json())
+              .then(
+                ({
+                  empleado: {
+                    cargo: { nombre },
+                  },
+                }) => {
+                  const object =
+                    nombre === "ROLE_CAJERO" ? "comprobante" : "comanda";
+                  const url = this.contextUrl + object;
+
+                  if (result.isConfirmed) {
+                    window.location.href = url;
+                  }
+                }
+              );
           });
         })
-        .fail((error) => {
+        .fail(() => {
           Swal.fire({
             title: "Error",
             text: "Ocurrió un error al registrar el comprobante",

@@ -260,7 +260,11 @@
                       sec:authorize="hasAnyRole('ADMINISTRADOR', 'MESERO')"
                     >
                       <th>Editar</th>
-                      <th>Eliminar</th>
+                      <th
+                        th:if="${comanda == null || comanda.getEstadoComanda().getEstado() == 'Generado'}"
+                      >
+                        Eliminar
+                      </th>
                     </th:block>
                   </thead>
                   <tbody id="tbBodyPlatos"></tbody>

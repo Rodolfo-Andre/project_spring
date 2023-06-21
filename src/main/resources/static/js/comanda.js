@@ -6,27 +6,35 @@ const ViewCore = function () {
     apis: {
       listar: "/obtener",
     },
-    init: function () {
+    init: async function () {
       this.getComandas();
       this.bntAddComanda = $("#btn-add");
     },
-    getComandas: function () {
+    getComandas: async function () {
       const url = this.contextUrl + this.apis.listar;
-      fetch(url)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
 
-          if (!data.length) {
-            $("#tableComandas")
-              .html(`<span class="text-center">Sin Mesas</span>`)
-              .addClass("justify-content-center");
-            this.showNoTablesModal();
-            return;
-          }
+      const response = await fetch(url);
+      const result = await response.json();
 
-          this.generateComanda(data);
-        });
+      if (!result.length) {
+        const {
+          empleado: {
+            cargo: { nombre },
+          },
+        } = await this.getCurrentUser();
+
+        const text = ["ROLE_COCINERO", "ROLE_CAJERO"].includes(nombre)
+          ? "COMANDAS"
+          : "MESAS";
+
+        $("#tableComandas")
+          .html(`<span class="text-center">Sin ${text.toLowerCase()}</span>`)
+          .addClass("justify-content-center");
+        this.showNoTablesModal(text);
+        return;
+      }
+
+      this.generateComanda(result);
     },
     generateComanda: function (data) {
       let html = "";
@@ -134,18 +142,19 @@ const ViewCore = function () {
       const modalInfo = this.templateComanda().modalInfoComanda(data);
       showModal(modalInfo);
     },
-    showNoTablesModal: function () {
+    showNoTablesModal: function (text) {
       const contentModal = {
         header: `<i class="icon text-center text-danger bi bi-exclamation-circle-fill"></i>	
-                    <h4 class="modal-title text-center" id="modal-prototype-label">NO HAY MESAS</h4>`,
-        body: `<p>No se puede realizar ninguna acción porque no exiten mesas</p>`,
+                    <h4 class="modal-title text-center" id="modal-prototype-label">NO HAY ${text} </h4>`,
+        body: `<p style="text-align: justify;">No se puede realizar ninguna acción porque no exiten ${text.toLowerCase()}</p>`,
         footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-danger">CERRAR</button>`,
       };
 
       showModal(contentModal);
     },
-    deleteComanda: function (id) {
-      const url = this.contextUrl + this.apis.delete;
+    getCurrentUser: async function () {
+      const result = await $.ajax("/usuario");
+      return result;
     },
     convertDate: function (date) {
       let d = new Date(date);
@@ -153,19 +162,6 @@ const ViewCore = function () {
       let mo = new Intl.DateTimeFormat("en", { month: "2-digit" }).format(d);
       let da = new Intl.DateTimeFormat("en", { day: "2-digit" }).format(d);
       return `${da}/${mo}/${ye}`;
-    },
-    modalError: function (message) {
-      const contentModal = {
-        header: `<i class="icon text-center text-danger bi bi-exclamation-circle-fill"></i> `,
-        body: `<div class="text-center">
-        <div><strong>ERROR:</strong> ${message}</div>
-        </div>`,
-        footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-primary">CERRAR</button>`,
-      };
-
-      $(".js-modal-content-comanda").children().remove();
-      $(".js-modal-content-comanda").html(contentModal);
-      $("#modalInfoComanda").modal("show");
     },
     templateComanda: function () {
       let me = this;
@@ -189,17 +185,6 @@ const ViewCore = function () {
               <div><strong>Precio Total:</strong> ${data.precioTotal}</div>
               </div>`,
             footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-primary">CERRAR</button>`,
-          };
-        },
-        modalDeleteComanda: function (id) {
-          return {
-            header: `<i class="icon text-center text-danger bi bi-trash-fill"></i>
-                              <h4 class="modal-title text-center" id="modal-prototype-label">¿ESTÁS SEGURO DE ELIMINAR LA CATEGORIA DE PLATO - ${id}?</h4>`,
-            body: `<form id="form-delete" >
-                                  <input type="hidden" name="id" value="${id}"/>
-                              </form>`,
-            footer: `<input form="form-delete" type="submit" class="w-50 text-white btn btn-danger" value="ELIMINAR"/>
-                              <button data-bs-dismiss="modal" aria-label="Close" class="w-50 btn btn-primary">CANCELAR</button>`,
           };
         },
       };
