@@ -102,6 +102,24 @@ const addEventToTable = () => {
                       }</div>
                       <div><strong>Comanda: </strong>${data.comanda.id}</div>
                       <div><strong>Caja: </strong>${data.caja.id}</div>
+                      <div>===============================================================</div>
+
+                      <div class="py-2">
+                      ${
+                        data.listaDetalleComprobante.length > 0 &&
+                        data.listaDetalleComprobante.map(
+                          (detalle) =>
+                            `<div
+                             class="d-flex justify-content-between align-items-center"
+                            ><strong>${detalle.metodoPago.metodo}:</strong>S./${detalle.montoPago}</div>`
+                        )
+
+                      }
+                      </div>
+                      
+
+
+
 										</div>`,
                 footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-primary">CERRAR</button>`,
               };

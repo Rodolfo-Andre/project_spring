@@ -25,7 +25,8 @@ export const ViewCoreFactura = function () {
       this.txtDescuento = $("#txt-descuento");
       this.btnDescuento = $("#btn-descuento");
       this.descuento = $("#input-descuento");
-
+      this.estadoUsuario = $("#txt-estado-usuario");
+    
       this.cboCaja = $("#cbo-caja");
 
       this.txtTotal = $("#txt-total-factura");
@@ -43,6 +44,8 @@ export const ViewCoreFactura = function () {
       this.listaPedidos = [];
       this.listaPagos = [];
 
+      this.descuentoSave = 0;
+      this.dniSave = 0;
       //condicionales
 
       const cantidadPedidos = this.containerPedidos.children().length;
@@ -69,19 +72,23 @@ export const ViewCoreFactura = function () {
         this.agregarMetodoPago();
       });
 
-      this.numeroDocumento.on("keyup", async (ev) => {
-        const { value } = ev.target;
-        if (value.length < 8) {
-          me.addError(
-            "El número de documento no puede tener menos de 8 dígitos"
-          );
-          return;
-        }
+      // this.numeroDocumento.on("keyup", async (ev) => {
+      //   const { value } = ev.target;
+      //   if (value.length < 8) {
+      //     me.addError(
+      //       "El número de documento no puede tener menos de 8 dígitos"
+      //     );
+      //     return;
+      //   }
 
-        if (value.length == 8) {
-          me.clearErrors();
-          await me.findCliente();
-        }
+      //   if (value.length == 8) {
+      //     me.clearErrors();
+      //     await me.findCliente();
+      //   }
+      // });
+
+      $("#btn-buscar-cliente").on("click", async () => {
+        await me.findCliente();
       });
 
       this.numeroDocumento.on("input", function () {
@@ -89,18 +96,21 @@ export const ViewCoreFactura = function () {
         if (inputValue.length > 8) {
           $(this).val(inputValue.slice(0, 8));
         }
+
+        if(inputValue.length == 8){
+           $("#btn-buscar-cliente").prop("disabled", false);
+        }else{
+            $("#btn-buscar-cliente").prop("disabled", true);
+        }
+
       });
 
       this.btnDescuento.on("click", () => {
-        const val = parseInt(this.descuento.val());
-        console.log(val);
-        console.log(typeof val);
-
+        const val = parseFloat(this.descuento.val());
         if (typeof val != "number" || isNaN(val)) {
           this.addError("Ingrese un descuento válido");
           return;
         }
-
         if (val < 0) {
           this.addError("El descuento no puede ser menor a 0");
           return;
@@ -166,7 +176,7 @@ export const ViewCoreFactura = function () {
         dataType: "json",
         contentType: "application/json",
       }).done((data) => {
-        this.cboPago.append(`<option value="">--Seleccione--</option>`);
+        this.cboPago.append(`<option value="default">--Seleccione--</option>`);
         data.forEach((metodoPago) => {
           this.cboPago.append(
             `<option value="${metodoPago.id}">${metodoPago.metodo}</option>`
@@ -176,7 +186,6 @@ export const ViewCoreFactura = function () {
     },
     getCajas: function () {
       const url = this.contextUrl + "caja/obtener";
-
       $.ajax({
         url: url,
         method: "GET",
@@ -185,7 +194,7 @@ export const ViewCoreFactura = function () {
       }).done((data) => {
         console.log(data);
 
-        $("#cbo-caja").append(`<option value="">--Seleccione--</option>`);
+        $("#cbo-caja").append(`<option value="default">--Seleccione--</option>`);
         data.forEach((caja) => {
           $("#cbo-caja").append(
             `<option value="${caja.id}">${caja.id}</option>`
@@ -217,9 +226,11 @@ export const ViewCoreFactura = function () {
     },
     findCliente: async function () {
       const numeroDocumento = this.numeroDocumento.val();
+       this.dniSave = numeroDocumento;
 
       const url =
         this.contextUrl + "comprobante/obtener-cliente/" + numeroDocumento;
+
 
       try {
         const response = await fetch(url);
@@ -275,7 +286,6 @@ export const ViewCoreFactura = function () {
       };
 
       const existe = this.listaPagos.find((pago) => pago.id === id);
-
       if (existe) {
         this.addError("El método de pago ya fue agregado");
         return;
@@ -294,19 +304,32 @@ export const ViewCoreFactura = function () {
       const pago = {
         id,
         tituloPago: metodo,
-        monto: this.monto.val(),
+        monto: this.convertirNumero(this.monto.val()).toFixed(2),
         imagen: imagen,
       };
 
-      if (pago.monto == 0) {
+       if(this.cboPago.val() == "default"){
+        this.addError("Seleccione un método de pago");
+        return;
+      }
+
+      if (pago.monto == 0 || pago.monto == "" || pago.monto == null  || pago.monto == undefined || pago.monto == NaN ) {
         this.addError("El monto no puede ser 0");
         return;
       }
 
-      const montoTotal = this.pago + parseFloat(pago.monto);
+      if(pago.monto < 0){
+        this.addError("El monto no puede ser negativo");
+        return;
+      }
 
-      const calcularMonto = parseFloat(montoTotal).toFixed(2);
-      const calcularTOTAL = parseFloat(this.total).toFixed(2);
+    
+
+      const montoTotal =   parseFloat(pago.monto);
+       this.pago += montoTotal;
+      const calcularMonto = parseFloat(this.pago);
+      const calcularTOTAL = parseFloat(this.total);
+
 
       if (calcularMonto > calcularTOTAL) {
         this.addError("El monto no puede ser mayor al total");
@@ -314,13 +337,12 @@ export const ViewCoreFactura = function () {
       }
       this.containerCardsPago.append(this.templates.cardPago(pago));
       this.listaPagos.push(pago);
-      this.monto.val("");
-      this.cboPago.val("");
+      this.monto.val(0);
+      this.cboPago.val("default");
       this.containerCardsPago.css("display", "block");
 
       this.containerCardsPago.on("click", ".js-eliminar-metodo-pago", (e) => {
         const id = $(e.target).closest(".card").attr("id");
-        console.log(id);
         this.eliminarMetodoPago(id);
       });
 
@@ -346,19 +368,17 @@ export const ViewCoreFactura = function () {
 
       this.listaPedidos.forEach((pedido) => {
         const { cantidad, precio } = pedido;
-
+        // const precioConver = this.convertirNumero(precio);
         subTotal += cantidad * precio;
       });
       this.subTotalVal = subTotal;
       total = subTotal;
-
+ 
       this.listaPagos.forEach((pago) => {
         this.pago += parseFloat(pago.monto);
       });
 
-      if (this.descuento.val() != 0 && this.descuento.val() > 0) {
-        total -= this.descuento.val();
-      }
+    
 
       igv = total * 0.18;
 
@@ -369,14 +389,33 @@ export const ViewCoreFactura = function () {
 
       this.faltante = this.total - this.pago;
 
+      const newDescuento = this.convertirNumero(this.descuento.val());
+      
+      if (newDescuento != 0 && newDescuento > 0) {
+
+        if(newDescuento > total){
+          this.addError("El descuento no puede ser mayor al total");
+          return;
+        }
+
+        total -= newDescuento;
+
+        this.total = total;
+
+        this.faltante = this.total - this.pago;
+        
+      }
+      console.log(this.faltante);
+      
       if (this.faltante <= 0) {
         this.faltante = 0;
       }
 
-      this.faltantetxt.text(this.faltante.toFixed(2));
+      this.descuentoSave = newDescuento;
       this.txtpago.text(this.pago.toFixed(2));
       this.subtotal.text(subTotal.toFixed(2));
-      this.txtDescuento.text(parseInt(this.descuento.val()).toFixed(2));
+      this.txtDescuento.text(newDescuento.toFixed(2));
+      this.faltantetxt.text(this.faltante.toFixed(2));
       this.txtTotal.text(total.toFixed(2));
       this.igv.text(igv.toFixed(2));
     },
@@ -389,6 +428,7 @@ export const ViewCoreFactura = function () {
       this.textError.text("");
     },
     facturar: function () {
+      let me = this;
       const newListaPagos = this.listaPagos.map((pago) => {
         return {
           idTipoPago: pago.id,
@@ -407,10 +447,10 @@ export const ViewCoreFactura = function () {
         cliente: {
           nombre: this.nombreCliente.val(),
           apellido: this.apellidoCliente.val(),
-          dni: this.numeroDocumento.val(),
+          dni:  this.dniSave,
         },
         listaPagos: newListaPagos,
-        descuento: this.descuento.val(),
+        descuento: this.descuentoSave,
         idCaja: this.cboCaja.val(),
         igv: this.igvValue,
         subTotal: this.subTotalVal,
@@ -431,7 +471,11 @@ export const ViewCoreFactura = function () {
             confirmButtonText: "Aceptar",
           }).then((result) => {
             if (result.isConfirmed) {
-              window.location.href = this.contextUrl + "comanda";
+               if (me.estadoUsuario == "ROLE_CAJERO") {
+                location.href = me.contextUrl + "comprobante";
+               }else{
+                window.location.href = this.contextUrl + "comanda";
+               }
             }
           });
         })
@@ -514,10 +558,19 @@ export const ViewCoreFactura = function () {
 
         if (regex.test(nameImage)) {
           image = `/images/metodos-pago/${item}.png`;
+        }else{
+          image = `/images/metodos-pago/efectivo.png`;
         }
       });
 
       return image;
     },
+
+    convertirNumero: function (numero) {
+      const numeroConPunto = numero.replace(/,/g, '.');
+      const valorNumerico = parseFloat(numeroConPunto);
+
+      return valorNumerico;
+    }
   };
 };

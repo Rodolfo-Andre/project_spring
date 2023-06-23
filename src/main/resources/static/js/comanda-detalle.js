@@ -28,6 +28,8 @@ const ViewCore = function () {
 
       this.txtNumeroComanda = $("#txt-numero-comanda");
       this.IdUsuario = $("#txt-id-usuario");
+   
+
       this.txtEstadoMesa = $("#txt-estado-mesa");
       this.txtNumeroMesa = $("#txt-numero-mesa");
       this.txtCantidadPersonas = $("#txt-cantidad-persona");
@@ -151,6 +153,8 @@ const ViewCore = function () {
 
         me.viewFactura.Core.setPedidos(me.listaDeEnvioPlatos);
       });
+
+
     },
     getValues: function () {
       return {
@@ -281,7 +285,6 @@ const ViewCore = function () {
       $("#categoria").change(async function (e) {
         const categoria = $("#categoria").val();
         const platos = await me.getPlato(categoria);
-        console.log(platos);
 
         $("#plato").html("");
         listPlatos = platos;
@@ -485,6 +488,7 @@ const ViewCore = function () {
       }
     },
     updateComandaStatus: async function () {
+      let me = this;
       const url =
         this.contextUrl + `/preparar-comanda/${this.txtNumeroComanda.val()}`;
 
@@ -502,6 +506,8 @@ const ViewCore = function () {
 
         this.showMessage(message, status, "Comanda").then((response) => {
           if (response.isConfirmed) {
+
+
             window.location.href = this.contextUrl;
           }
         });

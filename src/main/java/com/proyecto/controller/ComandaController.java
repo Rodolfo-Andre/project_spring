@@ -244,6 +244,20 @@ public class ComandaController {
         return "redirect:/configuracion/comanda";
       }
 
+      if (comanda.getEstadoComanda().getId() == 1) {
+        
+        redirect.addFlashAttribute("mensaje", "Error! La comanda no esta preparada");
+        redirect.addFlashAttribute("tipo", "error");
+        return "redirect:/configuracion/comanda";
+      }
+
+      if (comanda.getEstadoComanda().getId() == 2 && comanda.getListaDetalleComanda().size() > 0) {
+        redirect.addFlashAttribute("mensaje", "Error! La comanda ya esta en preparacion");
+        redirect.addFlashAttribute("tipo", "error");
+        return "redirect:/configuracion/comanda";
+      }
+
+
       for (DetalleComanda dComanda : comanda.getListaDetalleComanda()) {
         detalleComandaService.eliminar(dComanda.getId());
       }
