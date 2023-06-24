@@ -231,6 +231,18 @@ export const ViewCoreFactura = function () {
     },
     findCliente: async function () {
       const numeroDocumento = this.numeroDocumento.val();
+
+      const regex = /^\d+$/;
+
+      if (!regex.test(numeroDocumento)) {
+        this.addError("Ingrese un número de documento válido");
+        return;
+      }
+
+      this.clearErrors();
+      
+
+
        this.dniSave = numeroDocumento;
 
       const url =
