@@ -553,25 +553,44 @@ const ViewCore = function () {
       }
 
       if (me.listaDeEnvioPlatos.length > 0) {
-        const cantidadDeColumnas = $("#tablaDetalleComanda > thead > tr").find(
-          "th"
-        ).length;
+        const columnas = $("#tablaDetalleComanda > thead > tr th")
+          .map(function () {
+            return $(this).text().trim();
+          })
+          .get();
 
-        const controles = `
-            <td> 
+        const controles = [
+          `<td> 
               <button class="btn btn-warning btn-sm js-btn-edit">
                 <i class="bi bi-pencil-fill"></i>
               </button>
-            </td>
-            <td>
+            </td>`,
+          `<td>
                 <button class="btn btn-danger btn-sm js-btn-delete">
                   <i class="bi bi-trash-fill"></i>    
                 </button>
-            </td>`;
+            </td>`,
+        ];
+
+        const obtenerControler = () => {
+          if (columnas.includes("Editar") && columnas.includes("Eliminar")) {
+            return controles.join(",");
+          }
+
+          if (columnas.includes("Editar")) {
+            return controles[0];
+          }
+
+          if (columnas.includes("Eliminar")) {
+            return controles[1];
+          }
+
+          return "";
+        };
 
         me.listaDeEnvioPlatos.forEach((plato) => {
           $("#tbBodyPlatos").append(`
-          <tr data-id="${plato.id}">
+          <tr data-id="${plato.id}" class="align-middle">
             <td>${plato.id}</td>
             <td>
               <img src="${plato.imagen}" alt="" width="50" height="50">
@@ -586,7 +605,7 @@ const ViewCore = function () {
             <td
             class="js-total"
             >${plato.precio * plato.cantidad}</td>
-            ${cantidadDeColumnas > 6 && controles}
+            ${obtenerControler()}
           </tr>`);
         });
       }

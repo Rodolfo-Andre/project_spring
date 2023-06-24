@@ -2,6 +2,7 @@ package com.proyecto.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.proyecto.entity.*;
 import com.proyecto.service.EmpleadoService;
 import com.proyecto.service.UsuarioService;
+import com.proyecto.utils.ServicioCorreo;
 
 @Controller
 @RequestMapping(value = "/configuracion/empleado")
@@ -68,6 +70,18 @@ public class EmpleadoController {
       System.out.println("LA CONTRASEÑA GENERADA ES: " + contrasenia);
 
       empleadoService.registrar(e);
+
+      CompletableFuture
+          .runAsync(() -> {
+            try {
+              ServicioCorreo.enviarMensaje(correo,
+                  "Tu contraseña para acceder a nuestra plataforma es: " + contrasenia,
+                  "Bienvenido al sistema de comandas");
+            } catch (Exception e2) {
+              e2.printStackTrace();
+            }
+          });
+
       redirect.addFlashAttribute("mensaje", "Empleado registrado correctamente");
       redirect.addFlashAttribute("tipo", "success");
     } catch (Exception e) {

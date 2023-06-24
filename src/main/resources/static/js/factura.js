@@ -131,6 +131,11 @@ export const ViewCoreFactura = function () {
         this.calcularTotal();
       });
 
+       //dar click al input poner el valor en 0
+      
+
+
+
       this.btnFacturar.on("click", () => {
         if (this.listaPedidos.length == 0) {
           this.addError("No hay pedidos");
@@ -241,9 +246,10 @@ export const ViewCoreFactura = function () {
         this.apellidoCliente.val(data.apellido);
       } catch (error) {
         console.log(error);
-      } finally {
         this.nombreCliente.val("").attr("disabled", false);
         this.apellidoCliente.val("").attr("disabled", false);
+      } finally {
+      
       }
 
       // $.ajax({
@@ -463,23 +469,33 @@ export const ViewCoreFactura = function () {
         data: JSON.stringify(data),
         contentType: "application/json",
       })
-        .done((response) => {
+        .done(() => {
           Swal.fire({
             title: "Comprobante registrado",
             text: "El comprobante se registró correctamente",
             icon: "success",
             confirmButtonText: "Aceptar",
           }).then((result) => {
-            if (result.isConfirmed) {
-               if (me.estadoUsuario == "ROLE_CAJERO") {
-                location.href = me.contextUrl + "comprobante";
-               }else{
-                window.location.href = this.contextUrl + "comanda";
-               }
-            }
+            fetch("/usuario")
+              .then((response) => response.json())
+              .then(
+                ({
+                  empleado: {
+                    cargo: { nombre },
+                  },
+                }) => {
+                  const object =
+                    nombre === "ROLE_CAJERO" ? "comprobante" : "comanda";
+                  const url = this.contextUrl + object;
+
+                  if (result.isConfirmed) {
+                    window.location.href = url;
+                  }
+                }
+              );
           });
         })
-        .fail((error) => {
+        .fail(() => {
           Swal.fire({
             title: "Error",
             text: "Ocurrió un error al registrar el comprobante",

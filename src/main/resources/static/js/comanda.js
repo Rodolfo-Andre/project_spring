@@ -20,7 +20,7 @@ const ViewCore = function () {
           console.log(data);
           if (!data.length) {
             $("#tableComandas")
-              .html(`<span class="text-center">${me.estadoUsuario == "ROLE_COCINERO"? "No hay comandas disponibles" : "No hay mesas disponibles"}</span>`)
+              .html(`<span class="text-center">${me.estadoUsuario == "ROLE_COCINERO"? "No hay comandas" : "No hay mesas disponibles"}</span>`)
               .addClass("justify-content-center");
             this.showNoTablesModal();
             return;
@@ -99,18 +99,19 @@ const ViewCore = function () {
       const modalInfo = this.templateComanda().modalInfoComanda(data);
       showModal(modalInfo);
     },
-    showNoTablesModal: function () {
+    showNoTablesModal: function (text) {
       const contentModal = {
         header: `<i class="icon text-center text-danger bi bi-exclamation-circle-fill"></i>	
-                    <h4 class="modal-title text-center" id="modal-prototype-label">NO HAY MESAS</h4>`,
-        body: `<p>No se puede realizar ninguna acción porque no exiten mesas</p>`,
+                    <h4 class="modal-title text-center" id="modal-prototype-label">NO HAY ${text} </h4>`,
+        body: `<p style="text-align: justify;">No se puede realizar ninguna acción porque no exiten ${text.toLowerCase()}</p>`,
         footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-danger">CERRAR</button>`,
       };
 
       showModal(contentModal);
     },
-    deleteComanda: function (id) {
-      const url = this.contextUrl + this.apis.delete;
+    getCurrentUser: async function () {
+      const result = await $.ajax("/usuario");
+      return result;
     },
     convertDate: function (date) {
       let d = new Date(date);
@@ -118,19 +119,6 @@ const ViewCore = function () {
       let mo = new Intl.DateTimeFormat("en", { month: "2-digit" }).format(d);
       let da = new Intl.DateTimeFormat("en", { day: "2-digit" }).format(d);
       return `${da}/${mo}/${ye}`;
-    },
-    modalError: function (message) {
-      const contentModal = {
-        header: `<i class="icon text-center text-danger bi bi-exclamation-circle-fill"></i> `,
-        body: `<div class="text-center">
-        <div><strong>ERROR:</strong> ${message}</div>
-        </div>`,
-        footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-primary">CERRAR</button>`,
-      };
-
-      $(".js-modal-content-comanda").children().remove();
-      $(".js-modal-content-comanda").html(contentModal);
-      $("#modalInfoComanda").modal("show");
     },
     templateComanda: function () {
       let me = this;

@@ -265,7 +265,11 @@
                       sec:authorize="hasAnyRole('ADMINISTRADOR', 'MESERO')"
                     >
                       <th>Editar</th>
-                      <th>Eliminar</th>
+                      <th
+                        th:if="${comanda == null || comanda.getEstadoComanda().getEstado() == 'Generado'}"
+                      >
+                        Eliminar
+                      </th>
                     </th:block>
                   </thead>
                   <tbody id="tbBodyPlatos"></tbody>
@@ -342,8 +346,8 @@
                           Descuento
                         </label>
                         <input
-                          min="1"
                           type="text"
+                          value="0"
                           class="form-control"
                           id="input-descuento"
                           placeholder="Ingrese el descuento"
