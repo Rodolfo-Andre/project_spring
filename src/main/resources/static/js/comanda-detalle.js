@@ -54,7 +54,7 @@ const ViewCore = function () {
       this.txtPrecioTotal.val(0);
 
       if (this.txtEstadoMesa.val() == "Ocupado") {
-        await this.getSingle(this.getUrlParameter());
+        await this.obtenerComandaPorId(this.getUrlParameter());
       }
       this.attachEvents();
     },
@@ -153,6 +153,29 @@ const ViewCore = function () {
 
         me.viewFactura.Core.setPedidos(me.listaDeEnvioPlatos);
       });
+      
+      this.txtCantidadPersonas.on("keyup", function (ev) {
+          ev.preventDefault();
+        const val = ev.target.value;
+
+        if (val == "") {
+          me.txtCantidadPersonas.val(1);
+          return;
+        }
+
+        if(val <= 0){
+            me.txtCantidadPersonas.val(1);
+            return;
+        }
+
+        if(val > 15){
+            me.txtCantidadPersonas.val(15);
+            return;
+        }
+
+        me.txtCantidadPersonas.val(val);
+      } );
+
 
 
     },
@@ -302,6 +325,28 @@ const ViewCore = function () {
         });
       });
 
+      $("#cantidadDePedido").on("keyup", function (e) {
+        const val = parseInt($(this).val());
+
+        if (val > 15) {
+          $(this).val(15);
+        }
+
+        if (val < 0) {
+          $(this).val(1);
+        }
+
+        if (isNaN(val)) {
+          $(this).val(1);
+        }
+
+        if (val == "") {
+          $(this).val(1);
+        }
+    
+      });
+
+      
       if (dataModal) {
         $("#categoria").trigger("change");
       }
@@ -315,7 +360,24 @@ const ViewCore = function () {
         e.preventDefault();
 
         const platoId = $("#plato").val();
-        const cantidad = parseInt($("#cantidadDePedido").val());
+        const cantidad =  parseInt($("#cantidadDePedido").val())|| 0;
+        
+
+        if (!platoId) {
+          me.showMessage("Seleccione un plato", "error", "Error!");
+          return;
+        }
+
+        if (cantidad <= 0 || !cantidad || isNaN(cantidad) || cantidad == "") {
+          me.showMessage("Ingrese una cantidad valida", "error", "Error!");
+          return;
+        }
+
+        if(cantidad > 100){
+          me.showMessage("Ingrese una cantidad menor a 100", "error", "Error!");
+          return;
+        }
+
         const observacion = $("#txt-observacion").val();
 
         if (dataModal) {
@@ -365,13 +427,6 @@ const ViewCore = function () {
           return;
         }
 
-        if (cantidad <= 0) {
-          $("#error-platos")
-            .text("La cantidad debe ser mayor a 0")
-            .css("display", "block");
-          return;
-        }
-
         (data.observacion = observacion),
           $("#error-platos").text("").css("display", "none");
         me.initTable(data);
@@ -388,7 +443,7 @@ const ViewCore = function () {
       let me = this;
       me.initTable(data);
     },
-    getSingle: async function (id) {
+    obtenerComandaPorId: async function (id) {
       let me = this;
       try {
         const url = "/configuracion/comanda/obtener/" + id;
