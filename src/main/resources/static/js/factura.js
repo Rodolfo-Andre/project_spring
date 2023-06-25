@@ -1,6 +1,9 @@
 export const ViewCoreFactura = function () {
   this.Core = {
     contextUrl: "/configuracion/",
+    api: {
+      obtenerMetodosPago: "metodo-pago/obtener",
+    },
     init: function () {
       this.orden = $("#txt-orden");
       this.mesa = $("#txt-mesa");
@@ -43,7 +46,7 @@ export const ViewCoreFactura = function () {
       this.btnFacturar = $("#btn-facturar");
       this.listaPedidos = [];
       this.listaPagos = [];
-
+      this.listMetodoPago = [];
       this.descuentoSave = 0;
       this.dniSave = 0;
       //condicionales
@@ -68,8 +71,9 @@ export const ViewCoreFactura = function () {
     },
     initEvents: function () {
       let me = this;
+
       this.btnAgregarPago.on("click", () => {
-        this.agregarMetodoPago();
+        this.agregarMetodoNuevoPago();
       });
 
       // this.numeroDocumento.on("keyup", async (ev) => {
@@ -105,7 +109,7 @@ export const ViewCoreFactura = function () {
       });
 
       this.btnDescuento.on("click", () => {
-        const val = parseFloat(this.descuento.val());
+        const val = me.convertirNumero(this.descuento.val());
         if (typeof val != "number" || isNaN(val)) {
           this.addError("Ingrese un descuento válido");
           return;
@@ -125,9 +129,39 @@ export const ViewCoreFactura = function () {
           return;
         }
 
+        if (this.pago >= this.total) {
+          this.addError(
+            "No se puede aplicar descuento, ya se ha pagado el total"
+          );
+          return;
+        }
         this.clearErrors();
 
-        this.calcularTotal();
+        this.descuentoSave += val;
+
+        this.total = this.total - val;
+
+        this.faltante = this.total - this.pago;
+
+        this.txtTotal.text(this.total.toFixed(2));
+        this.faltantetxt.text(this.faltante.toFixed(2));
+        this.txtDescuento.text(val.toFixed(2));
+        this.descuento.val("");
+      });
+
+      this.monto.on("input", function () {
+        var inputValue = $(this).val();
+        if (inputValue.length > 10000) {
+          $(this).val(inputValue.slice(0, 3));
+        }
+
+        if (inputValue.length == 0) {
+          $(this).val("0");
+        }
+
+        if (inputValue.length < 0) {
+          $(this).val("0");
+        }
       });
 
       //dar click al input poner el valor en 0
@@ -158,11 +192,6 @@ export const ViewCoreFactura = function () {
           return;
         }
 
-        if (this.numeroDocumento.val() == "") {
-          this.addError("Ingrese un número de documento");
-          return;
-        }
-
         this.clearErrors();
 
         this.facturar();
@@ -178,6 +207,7 @@ export const ViewCoreFactura = function () {
         contentType: "application/json",
       }).done((data) => {
         this.cboPago.append(`<option value="default">--Seleccione--</option>`);
+        this.listMetodoPago = data;
         data.forEach((metodoPago) => {
           this.cboPago.append(
             `<option value="${metodoPago.id}">${metodoPago.metodo}</option>`
@@ -225,10 +255,20 @@ export const ViewCoreFactura = function () {
         );
       }
 
-      this.calcularTotal();
+      this.nuevoCalcularTotal();
     },
     findCliente: async function () {
       const numeroDocumento = this.numeroDocumento.val();
+
+      const regex = /^\d+$/;
+
+      if (!regex.test(numeroDocumento)) {
+        this.addError("Ingrese un número de documento válido");
+        return;
+      }
+
+      this.clearErrors();
+
       this.dniSave = numeroDocumento;
 
       const url =
@@ -236,9 +276,8 @@ export const ViewCoreFactura = function () {
 
       try {
         const response = await fetch(url);
-        const data = await response.json();
 
-        console.log(data);
+        const data = await response.json();
 
         this.nombreCliente.val(data.nombre);
         this.apellidoCliente.val(data.apellido);
@@ -282,146 +321,171 @@ export const ViewCoreFactura = function () {
         });
       });
     },
-    agregarMetodoPago: function () {
-      const { id, metodo } = {
-        id: this.cboPago.val(),
-        metodo: this.cboPago.find("option:selected").text(),
-      };
 
-      const existe = this.listaPagos.find((pago) => pago.id === id);
-      if (existe) {
-        this.addError("El método de pago ya fue agregado");
-        return;
-      } else if (id === "") {
-        this.addError("Seleccione un método de pago");
-        return;
-      } else if (this.monto.val() === "") {
-        this.addError("Ingrese un monto");
-        return;
-      } else {
-        this.clearErrors();
-      }
-
-      const imagen = this.getImage(metodo);
-
-      const pago = {
-        id,
-        tituloPago: metodo,
-        monto: this.convertirNumero(this.monto.val()).toFixed(2),
-        imagen: imagen,
-      };
+    agregarMetodoNuevoPago: function () {
+      const idMetodoPago = this.cboPago.val();
+      const monto = this.monto.val();
+      const montoConvert = this.convertirNumero(this.monto.val());
 
       if (this.cboPago.val() == "default") {
         this.addError("Seleccione un método de pago");
         return;
       }
 
+      const existeMetodoPago = this.listMetodoPago.find(
+        (pago) => pago.id === parseInt(idMetodoPago)
+      );
+
+      if (existeMetodoPago == undefined) {
+        this.addError("Seleccione un método de pago");
+        return;
+      }
+
       if (
-        pago.monto == 0 ||
-        pago.monto == "" ||
-        pago.monto == null ||
-        pago.monto == undefined ||
-        pago.monto == NaN
+        monto == 0 ||
+        monto == "" ||
+        monto == null ||
+        monto == undefined ||
+        monto == NaN
       ) {
         this.addError("El monto no puede ser 0");
         return;
       }
 
-      if (pago.monto < 0) {
+      if (monto < 0) {
         this.addError("El monto no puede ser negativo");
         return;
       }
 
-      const montoTotal = parseFloat(pago.monto);
-      this.pago += montoTotal;
-      const calcularMonto = parseFloat(this.pago);
-      const calcularTOTAL = parseFloat(this.total);
-
-      console.log(pago, calcularMonto, calcularTOTAL);
-
-      if (calcularMonto > calcularTOTAL) {
-        this.addError("El monto no puede ser mayor al total");
+      if (monto > this.total) {
+        this.addError("El montó supera el total");
         return;
       }
-      this.containerCardsPago.append(this.templates.cardPago(pago));
-      this.listaPagos.push(pago);
-      this.monto.val(0);
-      this.cboPago.val("default");
-      this.containerCardsPago.css("display", "block");
 
-      this.containerCardsPago.on("click", ".js-eliminar-metodo-pago", (e) => {
-        const id = $(e.target).closest(".card").attr("id");
-        this.eliminarMetodoPago(id);
-      });
+      const existe = this.listaPagos.find((pago) => pago.id === idMetodoPago);
+      //si existe el metodo de pago en la lista de pagos se actualiza el monto
+      if (existe) {
+        existe.monto = existe.monto + montoConvert;
 
-      // if (pago.monto > this.total) {
-      //   this.addError("El monto no puede ser mayor al total");
-      //   return;
-      // }
+        if (existe.monto > this.total) {
+          this.addError("El montó supera el total");
+          return;
+        }
 
-      this.calcularTotal();
+        this.listaPagos = this.listaPagos.map((pago) => {
+          if (pago.id === idMetodoPago) {
+            return existe;
+          }
+          return pago;
+        });
+
+        $("#mt-" + idMetodoPago).text(existe.monto.toFixed(2));
+
+        const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
+
+        this.pago = montoTotal;
+
+        this.txtpago.text(this.pago.toFixed(2));
+
+        this.faltante = this.total - this.pago;
+
+        this.faltantetxt.text(this.faltante.toFixed(2));
+
+        this.monto.val("");
+      } else {
+        const pago = {
+          key: this.generateKey(),
+          id: idMetodoPago,
+          monto: montoConvert,
+          tituloPago: existeMetodoPago.metodo,
+          imagen: this.getImage(existeMetodoPago.metodo),
+        };
+
+        this.listaPagos.push(pago);
+
+        const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
+
+        this.pago = montoTotal;
+
+        this.txtpago.text(this.pago.toFixed(2));
+
+        this.faltante = this.total - this.pago;
+
+        this.faltantetxt.text(this.faltante.toFixed(2));
+
+        this.containerCardsPago.append(this.templates.cardPago(pago));
+
+        this.cboPago.val("default");
+        this.containerCardsPago.css("display", "block");
+        this.monto.val("");
+
+        $(`#${pago.key}`).on("click", () => {
+          this.eliminarMetodoPago(pago.key);
+        });
+      }
+
+      this.clearErrors();
     },
-    eliminarMetodoPago: function (id) {
-      this.listaPagos = this.listaPagos.filter((pago) => pago.id != id);
-      $(`#${id}`).remove();
-      this.calcularTotal();
-    },
-    calcularTotal: function () {
-      this.pago = 0;
+
+    nuevoCalcularTotal: function () {
       this.total = 0;
+      this.faltante = 0;
+      this.pago = 0;
+      this.listaPagos = [];
+      this.containerCardsPago.empty();
+      this.containerCardsPago.css("display", "none");
+      this.txtpago.text("0.00");
+      this.faltantetxt.text("0.00");
+      this.monto.val("");
+      this.clearErrors();
+
       let subTotal = 0;
       let total = 0;
 
       let igv = 0;
 
-      this.listaPedidos.forEach((pedido) => {
-        const { cantidad, precio } = pedido;
-        // const precioConver = this.convertirNumero(precio);
-        subTotal += cantidad * precio;
-      });
-      this.subTotalVal = subTotal;
-      total = subTotal;
+      subTotal = this.listaPedidos.reduce(
+        (a, b) => a + b.cantidad * b.precio,
+        0
+      );
 
-      this.listaPagos.forEach((pago) => {
-        this.pago += parseFloat(pago.monto);
-      });
+      igv = subTotal * 0.18;
 
-      igv = total * 0.18;
+      total = subTotal + igv;
 
-      this.igvValue = igv;
-
-      total += igv;
       this.total = total;
+      this.faltante = this.total;
+      this.txtpago.text(this.pago.toFixed(2));
+      this.subtotal.text(subTotal.toFixed(2));
+      this.txtDescuento.text(this.descuentoSave.toFixed(2));
+      this.faltantetxt.text(this.faltante.toFixed(2));
+      this.txtTotal.text(this.total.toFixed(2));
+      this.igv.text(igv.toFixed(2));
+    },
+
+    eliminarMetodoPago: function (id) {
+      console.log("id", id);
+
+      const pago = this.listaPagos.find((pago) => pago.key === id);
+
+      if (pago == undefined) {
+        return;
+      }
+      this.listaPagos = this.listaPagos.filter((pago) => pago.key !== id);
+
+      this.pago = this.listaPagos.reduce((a, b) => a + b.monto, 0);
 
       this.faltante = this.total - this.pago;
 
-      const newDescuento = this.convertirNumero(this.descuento.val());
-
-      if (newDescuento != 0 && newDescuento > 0) {
-        if (newDescuento > total) {
-          this.addError("El descuento no puede ser mayor al total");
-          return;
-        }
-
-        total -= newDescuento;
-
-        this.total = total;
-
-        this.faltante = this.total - this.pago;
-      }
-      console.log(this.faltante);
-
-      if (this.faltante <= 0) {
-        this.faltante = 0;
-      }
-
-      this.descuentoSave = newDescuento;
-      this.txtpago.text(this.pago.toFixed(2));
-      this.subtotal.text(subTotal.toFixed(2));
-      this.txtDescuento.text(newDescuento.toFixed(2));
       this.faltantetxt.text(this.faltante.toFixed(2));
-      this.txtTotal.text(total.toFixed(2));
-      this.igv.text(igv.toFixed(2));
+
+      this.txtpago.text(this.pago.toFixed(2));
+
+      $(`#${pago.id}`).remove();
+
+      if (this.listaPagos.length == 0) {
+        this.containerCardsPago.css("display", "none");
+      }
     },
     addError: function (error) {
       this.containerError.css("display", "block");
@@ -460,7 +524,6 @@ export const ViewCoreFactura = function () {
         subTotal: this.subTotalVal,
       };
 
-      console.log(data);
       $.ajax({
         type: "POST",
         url: url,
@@ -510,15 +573,17 @@ export const ViewCoreFactura = function () {
       cardPago: function (pago) {
         return `
             <div 
-            id="${pago.id}"
+            id="${pago.key}"
             class="card w-100 mb-2">
             <div class="card-body">
                 <h5 class="card-title text-center">
                     ${pago.tituloPago}
                 </h5>
                 <div class="row d-flex align-items-center">
-                    <div class="col-6">
-                        <p class="card-text">Monto: S/.${pago.monto}</p>
+                    <div class="col-6 " id="mt-${pago.id}">
+                        <p class="card-text ">Monto: S/.<span class="js-monto">${pago.monto.toFixed(
+                          2
+                        )}</span></p>
                     </div>
                     <div class="col-6 text-end">
                         <img src="${pago.imagen}"
@@ -580,9 +645,14 @@ export const ViewCoreFactura = function () {
       return image;
     },
 
+    generateKey: function () {
+      return Math.random().toString(36).substr(2, 9);
+    },
+
     convertirNumero: function (numero) {
       const numeroConPunto = numero.replace(/,/g, ".");
-      const valorNumerico = parseFloat(numeroConPunto);
+      const convertirNumero = parseFloat(numeroConPunto).toFixed(2);
+      const valorNumerico = parseFloat(convertirNumero);
 
       return valorNumerico;
     },
