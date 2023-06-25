@@ -136,23 +136,29 @@ export const ViewCoreFactura = function () {
           this.addError("No se puede aplicar descuento, ya se ha pagado el total");
           return;
         }
+
+        if(this.descuentoSave >  this.total){
+          this.addError("No se puede aplicar descuento, ya se ha pagado el total");
+          return;
+        }  
+
+        if(this.descuentoSave > this.faltante){
+          this.addError("No se puede aplicar descuento, ya se ha pagado el total");
+          return;
+        }
+
+        if (this.descuentoSave == val) {
+          return;
+        }
+
         this.clearErrors();
         
-        
-        this.descuentoSave += val;
-        
+        this.descuentoSave = val;
         this.total = this.total - val;
-
         this.faltante = this.total - this.pago;
-
-
-
-         
         this.txtTotal.text(this.total.toFixed(2));
         this.faltantetxt.text(this.faltante.toFixed(2));
         this.txtDescuento.text(val.toFixed(2));
-        this.descuento.val("");
-        
       });
 
       this.monto.on("input", function () {
@@ -365,6 +371,13 @@ export const ViewCoreFactura = function () {
         return;
       }
 
+      if(monto > this.faltante){
+        this.addError("El montó supera el faltante");
+        return;
+      }
+
+
+
 
       const existe = this.listaPagos.find((pago) => pago.id === idMetodoPago);
       //si existe el metodo de pago en la lista de pagos se actualiza el monto
@@ -373,6 +386,11 @@ export const ViewCoreFactura = function () {
 
         if(existe.monto > this.total){
           this.addError("El montó supera el total");
+          return;
+        }
+
+        if(existe.monto > this.faltante){
+          this.addError("El montó supera el faltante");
           return;
         }
 
@@ -428,7 +446,7 @@ export const ViewCoreFactura = function () {
         this.containerCardsPago.css("display", "block");
         this.monto.val("");
 
-         $(`#${pago.key}`).on("click", () => {
+         $(`.js-eliminar-metodo-pago-${pago.key}`).on("click", () => {
           this.eliminarMetodoPago(pago.key);
           
          });
@@ -473,16 +491,17 @@ export const ViewCoreFactura = function () {
       this.faltantetxt.text(this.faltante.toFixed(2));
       this.txtTotal.text(this.total.toFixed(2));
       this.igv.text(igv.toFixed(2));
+      this.igvValue = this.convertirNumero(igv.toFixed(2));
+
     },
 
     eliminarMetodoPago: function (id) {
-      console.log("id",id);
-      
         const pago = this.listaPagos.find((pago) => pago.key === id);
-
         if(pago == undefined){
           return;
         }
+
+      $(`#${pago.key}`).remove();
       this.listaPagos = this.listaPagos.filter((pago) => pago.key !== id);
 
       this.pago = this.listaPagos.reduce((a, b) => a + b.monto, 0);
@@ -492,8 +511,6 @@ export const ViewCoreFactura = function () {
       this.faltantetxt.text(this.faltante.toFixed(2));
 
       this.txtpago.text(this.pago.toFixed(2));
-
-      $(`#${pago.id}`).remove();
 
 
       if(this.listaPagos.length == 0){
@@ -519,6 +536,12 @@ export const ViewCoreFactura = function () {
 
       this.btnFacturar.attr("disabled", true);
       const url = this.contextUrl + "comprobante/registrar";
+
+      
+      if (this.dniSave < 8 || this.dniSave >  1  || this.dniSave == undefined || this.dniSave == null || this.dniSave == "") {
+          this.dniSave = "";
+      }
+
 
       const data = {
         precioTotalPedido: this.total,
@@ -604,7 +627,7 @@ export const ViewCoreFactura = function () {
 
                 <div class="row">
                     <div class="col-12 ">
-                        <button class="btn w-100 btn-danger mt-2 btn-sm js-eliminar-metodo-pago">
+                        <button class="btn w-100 btn-danger mt-2 btn-sm js-eliminar-metodo-pago-${pago.key}">
                             <i class="bi bi-trash"></i>
                         </button>
 
