@@ -191,8 +191,6 @@ export const ViewCoreFactura = function () {
         }
       });
 
-      //dar click al input poner el valor en 0
-
       this.btnFacturar.on("click", () => {
         if (this.listaPedidos.length == 0) {
           this.addError("No hay pedidos");
@@ -350,6 +348,9 @@ export const ViewCoreFactura = function () {
     },
 
     agregarMetodoNuevoPago: function () {
+
+      const regex = /^[0-9,.]+$/;
+
       const idMetodoPago = this.cboPago.val();
       const monto = this.monto.val();
       const montoConvert = this.convertirNumero(this.monto.val());
@@ -367,13 +368,13 @@ export const ViewCoreFactura = function () {
         this.addError("Seleccione un método de pago");
         return;
       }
-
       if (
         monto == 0 ||
         monto == "" ||
         monto == null ||
         monto == undefined ||
-        monto == NaN
+        monto == NaN  ||
+        !regex.test(monto) 
       ) {
         this.addError("El monto no puede ser 0");
         return;
@@ -393,6 +394,7 @@ export const ViewCoreFactura = function () {
         this.addError("El montó supera el faltante");
         return;
       }
+      
 
 
 
@@ -400,28 +402,39 @@ export const ViewCoreFactura = function () {
       const existe = this.listaPagos.find((pago) => pago.id === idMetodoPago);
       //si existe el metodo de pago en la lista de pagos se actualiza el monto
       if (existe) {
-        existe.monto = existe.monto + montoConvert;
+        const montoExitente= existe.monto + montoConvert;
 
-        if (existe.monto > this.total) {
+        if (montoExitente > this.total) {
           this.addError("El montó supera el total");
           return;
         }
 
-        if(existe.monto > this.faltante){
-          this.addError("El montó supera el faltante");
+        if (montoConvert > this.faltante) {
+          this.addError("El monto supera el faltante");
+          return; // Salir del `if` y del contexto actual
+        }
+
+        if (montoExitente < 0) {
+          this.addError("El monto no puede ser negativo");
+          return; // Salir del `if` y del contexto actual
+        }
+
+
+        existe.monto = montoExitente;
+        const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
+        
+        if (montoTotal > this.total) {
+          this.addError("El montó supera el total");
+        
+          existe.monto = existe.monto - montoConvert;
           return;
         }
 
-        this.listaPagos = this.listaPagos.map((pago) => {
-          if (pago.id === idMetodoPago) {
-            return existe;
-          }
-          return pago;
-        });
+
+
 
         $("#mt-" + idMetodoPago).text(existe.monto.toFixed(2));
 
-        const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
 
         this.pago = montoTotal;
 
@@ -446,7 +459,7 @@ export const ViewCoreFactura = function () {
         const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
 
         this.pago = montoTotal;
-
+        
         this.txtpago.text(this.pago.toFixed(2));
 
         this.faltante = this.total - this.pago;
@@ -546,11 +559,38 @@ export const ViewCoreFactura = function () {
 
       this.btnFacturar.attr("disabled", true);
       const url = this.contextUrl + "comprobante/registrar";
-
+      console.log(this.dniSave);
       
-      if (this.dniSave < 8 || this.dniSave >  1  || this.dniSave == undefined || this.dniSave == null || this.dniSave == "") {
+      if (this.dniSave == undefined || this.dniSave == null || this.dniSave == "") {
           this.dniSave = "";
       }
+
+      if(this.dniSave.length != 8){
+        this.dniSave = "";
+      }
+
+      if (this.dniSave.length ==8) {
+
+        const nombre =this.nombreCliente.val()
+        const apellido = this.apellidoCliente.val();
+            console.log(nombre);
+            console.log(apellido);
+            
+
+        if (nombre == "" || nombre == null || nombre == undefined ) {
+          this.addError("Ingrese el nombre del cliente");
+          this.btnFacturar.attr("disabled", false);
+          return;
+        }
+
+        if (apellido == "" || apellido == null || apellido == undefined) {
+          this.addError("Ingrese el apellido del cliente");
+          this.btnFacturar.attr("disabled", false);
+          return;
+        }
+
+      }
+
 
 
       const data = {
@@ -626,8 +666,8 @@ export const ViewCoreFactura = function () {
                     ${pago.tituloPago}
                 </h5>
                 <div class="row d-flex align-items-center">
-                    <div class="col-6 " id="mt-${pago.id}">
-                        <p class="card-text ">Monto: S/.<span class="js-monto">${pago.monto.toFixed(
+                    <div class="col-6 " id="">
+                        <p class="card-text ">Monto: S/.<span class="js-monto" id="mt-${pago.id}" >${pago.monto.toFixed(
                           2
                         )}</span></p>
                     </div>
