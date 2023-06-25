@@ -136,6 +136,14 @@ export const ViewCoreFactura = function () {
           return;
         }
 
+        if(val == this.total){
+          this.addError(
+            "No se puede aplicar descuento, ya se ha pagado el total"
+          );
+          return;
+        }
+
+
         if (this.descuentoSave == this.total) {
           this.addError(
             "No se puede aplicar descuento, ya se ha pagado el total"
