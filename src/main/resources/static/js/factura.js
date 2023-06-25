@@ -199,11 +199,7 @@ export const ViewCoreFactura = function () {
           return;
         }
 
-        if (this.numeroDocumento.val() == "") {
-          this.addError("Ingrese un número de documento");
-          return;
-        }
-
+      
         this.clearErrors();
 
         this.facturar();
@@ -443,6 +439,19 @@ export const ViewCoreFactura = function () {
     }, 
     
     nuevoCalcularTotal: function () {
+      this.total = 0;
+      this.faltante = 0;
+      this.pago = 0;
+      this.listaPagos = [];
+      this.containerCardsPago.empty();
+      this.containerCardsPago.css("display", "none");
+      this.txtpago.text("0.00");
+      this.faltantetxt.text("0.00");
+      this.monto.val("");
+      this.clearErrors();
+     
+
+
       let subTotal = 0;
       let total = 0;
 
@@ -464,11 +473,6 @@ export const ViewCoreFactura = function () {
       this.faltantetxt.text(this.faltante.toFixed(2));
       this.txtTotal.text(this.total.toFixed(2));
       this.igv.text(igv.toFixed(2));
-      
-      console.log("this.pago",this.pago);
-      console.log("this.descuentoSave",this.descuentoSave);
-      console.log("this.faltante",this.faltante);
-      console.log("this.total",this.total);
     },
 
     eliminarMetodoPago: function (id) {
@@ -533,7 +537,6 @@ export const ViewCoreFactura = function () {
         subTotal: this.subTotalVal,
       };
 
-      console.log(data);
       $.ajax({
         type: "POST",
         url: url,

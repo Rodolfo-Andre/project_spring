@@ -141,7 +141,7 @@
                     >
                     <input
                       disabled
-                      th:value="${#authentication.principal.usuario.empleado.nombre}"
+                      th:value="${#authentication.principal.usuario.empleado.nombre + ' ' + #authentication.principal.usuario.empleado.apellido}"
                       type="text"
                       class="form-control"
                       id="txt-empleado"
