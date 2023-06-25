@@ -1,9 +1,8 @@
 export const ViewCoreFactura = function () {
   this.Core = {
     contextUrl: "/configuracion/",
-    api : {
+    api: {
       obtenerMetodosPago: "metodo-pago/obtener",
-      
     },
     init: function () {
       this.orden = $("#txt-orden");
@@ -30,7 +29,7 @@ export const ViewCoreFactura = function () {
       this.btnDescuento = $("#btn-descuento");
       this.descuento = $("#input-descuento");
       this.estadoUsuario = $("#txt-estado-usuario");
-    
+
       this.cboCaja = $("#cbo-caja");
 
       this.txtTotal = $("#txt-total-factura");
@@ -65,14 +64,14 @@ export const ViewCoreFactura = function () {
         this.containerCardsPago.css("display", "none");
       }
 
-      this.getMetodosPago(); 
+      this.getMetodosPago();
       this.getTipoFactura();
       this.getCajas();
       this.initEvents();
     },
     initEvents: function () {
       let me = this;
-      
+
       this.btnAgregarPago.on("click", () => {
         this.agregarMetodoNuevoPago();
       });
@@ -100,15 +99,13 @@ export const ViewCoreFactura = function () {
         var inputValue = $(this).val();
         if (inputValue.length > 8) {
           $(this).val(inputValue.slice(0, 8));
-        } 
-        
-
-        if(inputValue.length == 8){
-           $("#btn-buscar-cliente").prop("disabled", false);
-        }else{
-            $("#btn-buscar-cliente").prop("disabled", true);
         }
 
+        if (inputValue.length == 8) {
+          $("#btn-buscar-cliente").prop("disabled", false);
+        } else {
+          $("#btn-buscar-cliente").prop("disabled", true);
+        }
       });
 
       this.btnDescuento.on("click", () => {
@@ -132,8 +129,10 @@ export const ViewCoreFactura = function () {
           return;
         }
 
-        if(this.pago >= this.total){
-          this.addError("No se puede aplicar descuento, ya se ha pagado el total");
+        if (this.pago >= this.total) {
+          this.addError(
+            "No se puede aplicar descuento, ya se ha pagado el total"
+          );
           return;
         }
 
@@ -168,16 +167,15 @@ export const ViewCoreFactura = function () {
         }
 
         if (inputValue.length == 0) {
-         $(this).val("0");
+          $(this).val("0");
         }
 
         if (inputValue.length < 0) {
           $(this).val("0");
         }
-      
       });
 
-       //dar click al input poner el valor en 0
+      //dar click al input poner el valor en 0
 
       this.btnFacturar.on("click", () => {
         if (this.listaPedidos.length == 0) {
@@ -205,7 +203,6 @@ export const ViewCoreFactura = function () {
           return;
         }
 
-      
         this.clearErrors();
 
         this.facturar();
@@ -239,7 +236,9 @@ export const ViewCoreFactura = function () {
       }).done((data) => {
         console.log(data);
 
-        $("#cbo-caja").append(`<option value="default">--Seleccione--</option>`);
+        $("#cbo-caja").append(
+          `<option value="default">--Seleccione--</option>`
+        );
         data.forEach((caja) => {
           $("#cbo-caja").append(
             `<option value="${caja.id}">${caja.id}</option>`
@@ -280,14 +279,11 @@ export const ViewCoreFactura = function () {
       }
 
       this.clearErrors();
-      
 
-
-       this.dniSave = numeroDocumento;
+      this.dniSave = numeroDocumento;
 
       const url =
         this.contextUrl + "comprobante/obtener-cliente/" + numeroDocumento;
-
 
       try {
         const response = await fetch(url);
@@ -301,7 +297,6 @@ export const ViewCoreFactura = function () {
         this.nombreCliente.val("").attr("disabled", false);
         this.apellidoCliente.val("").attr("disabled", false);
       } finally {
-      
       }
 
       // $.ajax({
@@ -342,31 +337,38 @@ export const ViewCoreFactura = function () {
       const idMetodoPago = this.cboPago.val();
       const monto = this.monto.val();
       const montoConvert = this.convertirNumero(this.monto.val());
-      
-      
-      if(this.cboPago.val() == "default"){
-        this.addError("Seleccione un método de pago");
-        return;
-      }
-      
-      const existeMetodoPago = this.listMetodoPago.find((pago) => pago.id === parseInt(idMetodoPago));
-   
-      if(existeMetodoPago == undefined){
+
+      if (this.cboPago.val() == "default") {
         this.addError("Seleccione un método de pago");
         return;
       }
 
-      if (monto == 0 || monto == "" || monto == null || monto == undefined || monto == NaN) {
+      const existeMetodoPago = this.listMetodoPago.find(
+        (pago) => pago.id === parseInt(idMetodoPago)
+      );
+
+      if (existeMetodoPago == undefined) {
+        this.addError("Seleccione un método de pago");
+        return;
+      }
+
+      if (
+        monto == 0 ||
+        monto == "" ||
+        monto == null ||
+        monto == undefined ||
+        monto == NaN
+      ) {
         this.addError("El monto no puede ser 0");
         return;
       }
 
-      if(monto < 0){
+      if (monto < 0) {
         this.addError("El monto no puede ser negativo");
         return;
       }
 
-      if(monto > this.total){
+      if (monto > this.total) {
         this.addError("El montó supera el total");
         return;
       }
@@ -382,9 +384,9 @@ export const ViewCoreFactura = function () {
       const existe = this.listaPagos.find((pago) => pago.id === idMetodoPago);
       //si existe el metodo de pago en la lista de pagos se actualiza el monto
       if (existe) {
-        existe.monto =  existe.monto + montoConvert;
+        existe.monto = existe.monto + montoConvert;
 
-        if(existe.monto > this.total){
+        if (existe.monto > this.total) {
           this.addError("El montó supera el total");
           return;
         }
@@ -403,43 +405,38 @@ export const ViewCoreFactura = function () {
 
         $("#mt-" + idMetodoPago).text(existe.monto.toFixed(2));
 
-
         const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
 
         this.pago = montoTotal;
 
         this.txtpago.text(this.pago.toFixed(2));
-
 
         this.faltante = this.total - this.pago;
 
         this.faltantetxt.text(this.faltante.toFixed(2));
 
         this.monto.val("");
-
       } else {
-       
-       const pago = {
-        key: this.generateKey(),
-        id: idMetodoPago,
-        monto: montoConvert,
-        tituloPago: existeMetodoPago.metodo,
-        imagen :  this.getImage(existeMetodoPago.metodo)
-      }
-       
+        const pago = {
+          key: this.generateKey(),
+          id: idMetodoPago,
+          monto: montoConvert,
+          tituloPago: existeMetodoPago.metodo,
+          imagen: this.getImage(existeMetodoPago.metodo),
+        };
+
         this.listaPagos.push(pago);
 
-        
         const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
-        
+
         this.pago = montoTotal;
 
         this.txtpago.text(this.pago.toFixed(2));
 
         this.faltante = this.total - this.pago;
-        
+
         this.faltantetxt.text(this.faltante.toFixed(2));
-        
+
         this.containerCardsPago.append(this.templates.cardPago(pago));
 
         this.cboPago.val("default");
@@ -448,14 +445,12 @@ export const ViewCoreFactura = function () {
 
          $(`.js-eliminar-metodo-pago-${pago.key}`).on("click", () => {
           this.eliminarMetodoPago(pago.key);
-          
-         });
-
+        });
       }
-      
+
       this.clearErrors();
-    }, 
-    
+    },
+
     nuevoCalcularTotal: function () {
       this.total = 0;
       this.faltante = 0;
@@ -467,21 +462,20 @@ export const ViewCoreFactura = function () {
       this.faltantetxt.text("0.00");
       this.monto.val("");
       this.clearErrors();
-     
-
 
       let subTotal = 0;
       let total = 0;
 
       let igv = 0;
- 
 
-      subTotal = this.listaPedidos.reduce((a, b) => a + b.cantidad * b.precio, 0);
+      subTotal = this.listaPedidos.reduce(
+        (a, b) => a + b.cantidad * b.precio,
+        0
+      );
 
       igv = subTotal * 0.18;
-      
+
       total = subTotal + igv;
-      
 
       this.total = total;
       this.faltante = this.total;
@@ -551,7 +545,7 @@ export const ViewCoreFactura = function () {
         cliente: {
           nombre: this.nombreCliente.val(),
           apellido: this.apellidoCliente.val(),
-          dni:  this.dniSave,
+          dni: this.dniSave,
         },
         listaPagos: newListaPagos,
         descuento: this.descuentoSave,
@@ -617,7 +611,9 @@ export const ViewCoreFactura = function () {
                 </h5>
                 <div class="row d-flex align-items-center">
                     <div class="col-6 " id="mt-${pago.id}">
-                        <p class="card-text ">Monto: S/.<span class="js-monto">${pago.monto.toFixed(2)}</span></p>
+                        <p class="card-text ">Monto: S/.<span class="js-monto">${pago.monto.toFixed(
+                          2
+                        )}</span></p>
                     </div>
                     <div class="col-6 text-end">
                         <img src="${pago.imagen}"
@@ -671,7 +667,7 @@ export const ViewCoreFactura = function () {
 
         if (regex.test(nameImage)) {
           image = `/images/metodos-pago/${item}.png`;
-        }else{
+        } else {
           image = `/images/metodos-pago/efectivo.png`;
         }
       });
@@ -683,14 +679,12 @@ export const ViewCoreFactura = function () {
       return Math.random().toString(36).substr(2, 9);
     },
 
-
     convertirNumero: function (numero) {
-      
-      const numeroConPunto = numero.replace(/,/g, '.');
+      const numeroConPunto = numero.replace(/,/g, ".");
       const convertirNumero = parseFloat(numeroConPunto).toFixed(2);
       const valorNumerico = parseFloat(convertirNumero);
 
       return valorNumerico;
-    }
+    },
   };
 };
