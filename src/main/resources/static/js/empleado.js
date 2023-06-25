@@ -453,6 +453,14 @@ const addEventToButtonConfirmAddAndConfirmUpdate = () => {
       }
 
       if (!isInvalid) {
+        const $loader = $(`<div class="flex-grow-1 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        </div>`);
+
+                          $(e.target).replaceWith($loader);
+                          $("#btn-cancel").prop("disabled", true);
         $form.submit();
       }
     }
