@@ -193,7 +193,7 @@ export const ViewCoreFactura = function () {
           return;
         }
 
-        if (this.cboCaja.val() == "") {
+        if (this.cboCaja.val() == "" || this.cboCaja.val() == "default" || this.cboCaja.val() == null || this.cboCaja.val() == undefined) {
           this.addError("Seleccione una caja");
           return;
         }
