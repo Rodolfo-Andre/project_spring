@@ -491,7 +491,7 @@ export const ViewCoreFactura = function () {
 
     eliminarMetodoPago: function (id) {
         const pago = this.listaPagos.find((pago) => pago.key === id);
-        if(pago == undefined){
+        if(pago == undefined || pago == null || pago == "" || pago == NaN){
           return;
         }
 
