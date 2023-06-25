@@ -114,18 +114,18 @@ const addEventToTable = () => {
       }
 
       if ($listBtnUpdate.filter(e.currentTarget).length) {
-        $.get(`/configuracion/cargo/obtener`, (data) => {
-          const listOptions = data.map(
-            (cargo) =>
-              `<option value="${
-                cargo.id
-              }" style="text-transform: capitalize">${cargo.nombre
-                .replace("ROLE_", "")
-                .toLowerCase()}</option>`
-          );
-          const options = listOptions.join(" ");
-
+        $.get(`/configuracion/cargo/obtener`, (dataCargo) => {
           $.get(`/configuracion/empleado/obtener/${id}`, (data) => {
+            const listOptions = dataCargo.map(
+              (cargo) =>
+                `<option value="${
+                  cargo.id
+                }" style="text-transform: capitalize" ${
+                  cargo.id == data.cargo.id ? "selected" : ""
+                }>${cargo.nombre.replace("ROLE_", "").toLowerCase()}</option>`
+            );
+            const options = listOptions.join(" ");
+
             $.get(`/usuario`, (user) => {
               const disable = user.id == id;
 
