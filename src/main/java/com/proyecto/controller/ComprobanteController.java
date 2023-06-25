@@ -96,7 +96,7 @@ public class ComprobanteController {
     }
     Cliente cliente;
 
-    if(input.cliente.getDni() == "" || input.cliente.getDni() == null || input.cliente.getDni().length() < 8 ){
+    if(input.cliente.getDni() == "" || input.cliente.getDni() == null || input.cliente.getDni().length() <= 8 ){
 
       cliente =  clienteService.obtenerPorId(1);
      
