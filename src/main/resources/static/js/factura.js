@@ -26,7 +26,7 @@ export const ViewCoreFactura = function () {
       this.btnDescuento = $("#btn-descuento");
       this.descuento = $("#input-descuento");
       this.estadoUsuario = $("#txt-estado-usuario");
-    
+
       this.cboCaja = $("#cbo-caja");
 
       this.txtTotal = $("#txt-total-factura");
@@ -97,12 +97,11 @@ export const ViewCoreFactura = function () {
           $(this).val(inputValue.slice(0, 8));
         }
 
-        if(inputValue.length == 8){
-           $("#btn-buscar-cliente").prop("disabled", false);
-        }else{
-            $("#btn-buscar-cliente").prop("disabled", true);
+        if (inputValue.length == 8) {
+          $("#btn-buscar-cliente").prop("disabled", false);
+        } else {
+          $("#btn-buscar-cliente").prop("disabled", true);
         }
-
       });
 
       this.btnDescuento.on("click", () => {
@@ -131,10 +130,7 @@ export const ViewCoreFactura = function () {
         this.calcularTotal();
       });
 
-       //dar click al input poner el valor en 0
-      
-
-
+      //dar click al input poner el valor en 0
 
       this.btnFacturar.on("click", () => {
         if (this.listaPedidos.length == 0) {
@@ -199,7 +195,9 @@ export const ViewCoreFactura = function () {
       }).done((data) => {
         console.log(data);
 
-        $("#cbo-caja").append(`<option value="default">--Seleccione--</option>`);
+        $("#cbo-caja").append(
+          `<option value="default">--Seleccione--</option>`
+        );
         data.forEach((caja) => {
           $("#cbo-caja").append(
             `<option value="${caja.id}">${caja.id}</option>`
@@ -231,16 +229,16 @@ export const ViewCoreFactura = function () {
     },
     findCliente: async function () {
       const numeroDocumento = this.numeroDocumento.val();
-       this.dniSave = numeroDocumento;
+      this.dniSave = numeroDocumento;
 
       const url =
         this.contextUrl + "comprobante/obtener-cliente/" + numeroDocumento;
 
-
       try {
         const response = await fetch(url);
-
         const data = await response.json();
+
+        console.log(data);
 
         this.nombreCliente.val(data.nombre);
         this.apellidoCliente.val(data.apellido);
@@ -249,7 +247,6 @@ export const ViewCoreFactura = function () {
         this.nombreCliente.val("").attr("disabled", false);
         this.apellidoCliente.val("").attr("disabled", false);
       } finally {
-      
       }
 
       // $.ajax({
@@ -314,28 +311,33 @@ export const ViewCoreFactura = function () {
         imagen: imagen,
       };
 
-       if(this.cboPago.val() == "default"){
+      if (this.cboPago.val() == "default") {
         this.addError("Seleccione un método de pago");
         return;
       }
 
-      if (pago.monto == 0 || pago.monto == "" || pago.monto == null  || pago.monto == undefined || pago.monto == NaN ) {
+      if (
+        pago.monto == 0 ||
+        pago.monto == "" ||
+        pago.monto == null ||
+        pago.monto == undefined ||
+        pago.monto == NaN
+      ) {
         this.addError("El monto no puede ser 0");
         return;
       }
 
-      if(pago.monto < 0){
+      if (pago.monto < 0) {
         this.addError("El monto no puede ser negativo");
         return;
       }
 
-    
-
-      const montoTotal =   parseFloat(pago.monto);
-       this.pago += montoTotal;
+      const montoTotal = parseFloat(pago.monto);
+      this.pago += montoTotal;
       const calcularMonto = parseFloat(this.pago);
       const calcularTOTAL = parseFloat(this.total);
 
+      console.log(pago, calcularMonto, calcularTOTAL);
 
       if (calcularMonto > calcularTOTAL) {
         this.addError("El monto no puede ser mayor al total");
@@ -379,12 +381,10 @@ export const ViewCoreFactura = function () {
       });
       this.subTotalVal = subTotal;
       total = subTotal;
- 
+
       this.listaPagos.forEach((pago) => {
         this.pago += parseFloat(pago.monto);
       });
-
-    
 
       igv = total * 0.18;
 
@@ -396,10 +396,9 @@ export const ViewCoreFactura = function () {
       this.faltante = this.total - this.pago;
 
       const newDescuento = this.convertirNumero(this.descuento.val());
-      
-      if (newDescuento != 0 && newDescuento > 0) {
 
-        if(newDescuento > total){
+      if (newDescuento != 0 && newDescuento > 0) {
+        if (newDescuento > total) {
           this.addError("El descuento no puede ser mayor al total");
           return;
         }
@@ -409,10 +408,9 @@ export const ViewCoreFactura = function () {
         this.total = total;
 
         this.faltante = this.total - this.pago;
-        
       }
       console.log(this.faltante);
-      
+
       if (this.faltante <= 0) {
         this.faltante = 0;
       }
@@ -453,7 +451,7 @@ export const ViewCoreFactura = function () {
         cliente: {
           nombre: this.nombreCliente.val(),
           apellido: this.apellidoCliente.val(),
-          dni:  this.dniSave,
+          dni: this.dniSave,
         },
         listaPagos: newListaPagos,
         descuento: this.descuentoSave,
@@ -574,7 +572,7 @@ export const ViewCoreFactura = function () {
 
         if (regex.test(nameImage)) {
           image = `/images/metodos-pago/${item}.png`;
-        }else{
+        } else {
           image = `/images/metodos-pago/efectivo.png`;
         }
       });
@@ -583,10 +581,10 @@ export const ViewCoreFactura = function () {
     },
 
     convertirNumero: function (numero) {
-      const numeroConPunto = numero.replace(/,/g, '.');
+      const numeroConPunto = numero.replace(/,/g, ".");
       const valorNumerico = parseFloat(numeroConPunto);
 
       return valorNumerico;
-    }
+    },
   };
 };

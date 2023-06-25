@@ -13,6 +13,8 @@ const initializeTable = () => {
     language: {
       url: "/language/datatables-es-mx.json",
     },
+    lengthChange: false,
+    pageLength: 5,
     responsive: true,
     fixedHeader: true,
     rowId: "0",

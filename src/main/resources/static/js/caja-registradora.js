@@ -12,6 +12,8 @@ const initializeTable = () => {
     language: {
       url: "/language/datatables-es-mx.json",
     },
+    lengthChange: false,
+    pageLength: 5,
     responsive: true,
     fixedHeader: true,
     rowId: "0",
@@ -23,8 +25,6 @@ const initializeTable = () => {
       null,
       null,
       null,
-    
-
       { orderable: false, searchable: false, width: 50 },
     ],
 
@@ -113,7 +113,6 @@ const addEventToTable = () => {
                              class="d-flex justify-content-between align-items-center"
                             ><strong>${detalle.metodoPago.metodo}:</strong>S./${detalle.montoPago}</div>`
                         )
-
                       }
                       </div>
                       
