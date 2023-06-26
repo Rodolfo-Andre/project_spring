@@ -248,13 +248,13 @@ const ViewCore = function () {
                     <select 
                         id="categoria" 
                         ${dataModal ? "disabled" : ""}
-                        value="${dataModal ? dataModal.categoriaPlatoId : ""}"
+                        value="${dataModal ? dataModal.categoriaPlato.id : ""}"
                         class="form-select" name="categoria" style="text-transform: capitalize">
                         <option value="">Seleccione</option>
                         ${categorias.map((categoria) => {
                           return `<option value="${categoria.id}" ${
                             dataModal &&
-                            dataModal.categoriaPlatoId === categoria.id
+                            dataModal.categoriaPlato.id === categoria.id
                               ? "selected"
                               : ""
                           }>${categoria.nombre}</option>`;
@@ -407,18 +407,13 @@ const ViewCore = function () {
           return;
         }
           
-     
-        const categoria =  me.listaDeCategoriaDePlatos.find(c=> c.id == plato.categoriaPlatoId);
-
-
-
         
         let data = {
           id: platoId,
           imagen: plato.imagen,
           nombre: plato.nombre,
           cantidad: cantidad,
-          categoriaPlato: categoria,
+          categoriaPlato: plato.categoriaPlato,
           precio: plato.precioPlato,
         };
 
