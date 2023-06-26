@@ -161,10 +161,25 @@ export const ViewCoreFactura = function () {
           this.addError("No se puede aplicar descuento, ya se ha pagado el total");
           return;
         }
+        const descuentoConTotal = this.descuentoSave + val;
+
+        if (descuentoConTotal > this.total) {
+          this.addError("El descuento no puede ser mayor al total");
+          return;
+        } 
 
         if (this.descuentoSave == val) {
           return;
         }
+
+        const rendonderDescuento = Math.round(val * 100) / 100;
+        const rendondearFaltante = Math.round(this.faltante * 100) / 100;
+
+        if (rendonderDescuento > rendondearFaltante) {
+          this.addError("El descuento no puede ser mayor al faltante");
+          return;
+        }
+
 
         this.clearErrors();
         

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.proyecto.entity.*;
+import com.proyecto.entity.dto.PlatoDTO;
 import com.proyecto.service.PlatoService;
 import com.proyecto.utils.ServicioImagen;
 
@@ -122,9 +123,21 @@ public class PlatoController {
 
   @GetMapping(value = "/obtener-by-categoria/{id}")
   @ResponseBody
-  public List<Plato> obtenerPlatoPorCategoria(@PathVariable String id) {
+  public List<PlatoDTO> obtenerPlatoPorCategoria(@PathVariable String id) {
     List<Plato> listaPlato = platoService.obtenerPlatoByCategoriId(id);
-    return listaPlato;
+    List<PlatoDTO> dtoPlatos = new ArrayList<>();
+
+    for (Plato plato : listaPlato) {
+      PlatoDTO dtoPlato = new PlatoDTO();
+      dtoPlato.id = plato.getId();
+      dtoPlato.nombre = plato.getNombre();
+      dtoPlato.imagen = plato.getImagen();
+      dtoPlato.precioPlato = plato.getPrecioPlato();
+      dtoPlato.categoriaPlatoId = plato.getCategoriaPlato().getId();
+      dtoPlatos.add(dtoPlato);
+    }
+
+    return dtoPlatos;
   }
 
   @GetMapping(value = { "/verificar-nombre/{nombre}", "/verificar-nombre/{nombre}/{cod}" })
