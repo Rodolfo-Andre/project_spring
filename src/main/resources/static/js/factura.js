@@ -367,14 +367,15 @@ export const ViewCoreFactura = function () {
       const regex = /^[0-9,.]+$/;
 
       const idMetodoPago = this.cboPago.val();
-      const monto = this.monto.val();
+      const monto = this.monto.val().trim();
       const montoConvert = this.convertirNumero(this.monto.val());
 
       if (this.cboPago.val() == "default") {
         this.addError("Seleccione un método de pago");
         return;
       }
-
+      const  rendondearMonto = Math.round(monto * 100) / 100;
+      const rendondearFaltante = Math.round(this.faltante * 100) / 100;
       const existeMetodoPago = this.listMetodoPago.find(
         (pago) => pago.id === parseInt(idMetodoPago)
       );
@@ -405,13 +406,11 @@ export const ViewCoreFactura = function () {
         return;
       }
 
-      if(monto > this.faltante){
+      if(rendondearMonto > rendondearFaltante){
         this.addError("El montó supera el faltante");
         return;
       }
       
-
-
 
 
       const existe = this.listaPagos.find((pago) => pago.id === idMetodoPago);
@@ -419,17 +418,18 @@ export const ViewCoreFactura = function () {
       if (existe) {
         const montoExitente= existe.monto + montoConvert;
 
-        if (montoExitente > this.total) {
+        const rendondearTotal = Math.round(this.total * 100) / 100;
+        const rendondearMontoExitente = Math.round(montoExitente * 100) / 100;
+
+
+        if (rendondearMontoExitente > rendondearTotal) {
           this.addError("El montó supera el total");
           return;
-        }
+        
+      }
 
-        if (montoConvert > this.faltante) {
-          this.addError("El monto supera el faltante");
-          return; // Salir del `if` y del contexto actual
-        }
 
-        if (montoExitente < 0) {
+        if (rendondearMontoExitente < 0) {
           this.addError("El monto no puede ser negativo");
           return; // Salir del `if` y del contexto actual
         }
@@ -437,15 +437,13 @@ export const ViewCoreFactura = function () {
 
         existe.monto = montoExitente;
         const montoTotal = this.listaPagos.reduce((a, b) => a + b.monto, 0);
+        const rendonderMontoTotal = Math.round(montoTotal * 100) / 100;
         
-        if (montoTotal > this.total) {
+        if (rendonderMontoTotal > rendondearTotal) {
           this.addError("El montó supera el total");
-        
           existe.monto = existe.monto - montoConvert;
           return;
         }
-
-
 
 
         $("#mt-" + idMetodoPago).text(existe.monto.toFixed(2));
