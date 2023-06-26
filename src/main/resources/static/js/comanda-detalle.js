@@ -28,7 +28,6 @@ const ViewCore = function () {
 
       this.txtNumeroComanda = $("#txt-numero-comanda");
       this.IdUsuario = $("#txt-id-usuario");
-   
 
       this.txtEstadoMesa = $("#txt-estado-mesa");
       this.txtNumeroMesa = $("#txt-numero-mesa");
@@ -154,10 +153,9 @@ const ViewCore = function () {
 
         me.viewFactura.Core.setPedidos(me.listaDeEnvioPlatos);
       });
-      
-      this.txtCantidadPersonas.on("keyup", function (ev) {
 
-          ev.preventDefault();
+      this.txtCantidadPersonas.on("keyup", function (ev) {
+        ev.preventDefault();
         const val = ev.target.value;
 
         if (val == "") {
@@ -165,23 +163,18 @@ const ViewCore = function () {
           return;
         }
 
-
-
-        if(val <= 0){
-            me.txtCantidadPersonas.val(1);
-            return;
+        if (val <= 0) {
+          me.txtCantidadPersonas.val(1);
+          return;
         }
 
-        if(val > 15){
-            me.txtCantidadPersonas.val(15);
-            return;
+        if (val > 15) {
+          me.txtCantidadPersonas.val(15);
+          return;
         }
 
-         
         me.txtCantidadPersonas.val(val);
-      } );
-
-
+      });
     },
     getValues: function () {
       return {
@@ -347,14 +340,12 @@ const ViewCore = function () {
         if (val == "") {
           $(this).val(1);
         }
-    
       });
 
-      
       if (dataModal) {
         $("#categoria").trigger("change");
       }
-      
+
       $("#plato").change(async function (e) {
         const platoId = $("#plato").val();
         plato = listPlatos.find((plato) => plato.id == platoId);
@@ -364,8 +355,7 @@ const ViewCore = function () {
         e.preventDefault();
 
         const platoId = $("#plato").val();
-        const cantidad =  parseInt($("#cantidadDePedido").val())|| 0;
-        
+        const cantidad = parseInt($("#cantidadDePedido").val()) || 0;
 
         if (!platoId) {
           me.showMessage("Seleccione un plato", "error", "Error!");
@@ -377,7 +367,7 @@ const ViewCore = function () {
           return;
         }
 
-        if(cantidad > 16){
+        if (cantidad > 16) {
           me.showMessage("Ingrese una cantidad menor a 15", "error", "Error!");
           return;
         }
@@ -406,8 +396,7 @@ const ViewCore = function () {
           me.showMessage("El plato ya fue agregado", "error", "Error!");
           return;
         }
-          
-        
+
         let data = {
           id: platoId,
           imagen: plato.imagen,
@@ -433,10 +422,8 @@ const ViewCore = function () {
         }
 
         data.observacion = observacion;
-     
 
-
-          $("#error-platos").text("").css("display", "none");
+        $("#error-platos").text("").css("display", "none");
         me.initTable(data);
         me.showMessage(
           "Plato añadido correctamente",
@@ -457,14 +444,12 @@ const ViewCore = function () {
         const url = "/configuracion/comanda/obtener/" + id;
         const response = await fetch(url);
         const data = await response.json();
-    
 
         me.txtCantidadPersonas.val(data.cantidadAsientos);
         me.txtEmpleado.val(data.empleado.nombre + " " + data.empleado.apellido);
         me.txtPrecioTotal.val(data.precioTotal);
         me.txtEstadoComanda.val(data.estadoComanda.estado);
         const listado = [];
-  
 
         if (data.estadoComanda.estado == "Preparado") {
           me.btnFacturar.css("display", "block");
@@ -515,13 +500,16 @@ const ViewCore = function () {
         idUsuario: me.IdUsuario.val(),
       };
 
-
-      if(baseData.cantidadPersonas <= 0 || baseData.cantidadPersonas == "" || isNaN(baseData.cantidadPersonas)){
+      if (
+        baseData.cantidadPersonas <= 0 ||
+        baseData.cantidadPersonas == "" ||
+        isNaN(baseData.cantidadPersonas)
+      ) {
         me.showError("La cantidad de personas no puede ser menor o igual a 0");
-        me.containerError.append(ext); 
+        me.containerError.append(ext);
         return;
       }
-       me.containerError.empty();
+      me.containerError.empty();
       try {
         me.btnGenerar.prop("disabled", true);
         me.btnActualizar.prop("disabled", true);
@@ -572,8 +560,6 @@ const ViewCore = function () {
 
         this.showMessage(message, status, "Comanda").then((response) => {
           if (response.isConfirmed) {
-
-
             window.location.href = this.contextUrl;
           }
         });
@@ -605,7 +591,6 @@ const ViewCore = function () {
       $("#tbBodyPlatos").html("");
 
       if (data != null && data != undefined) {
-
         const plato = me.listaDeEnvioPlatos.find(
           (plato) => plato.id == data.id
         );
@@ -679,7 +664,6 @@ const ViewCore = function () {
       }, 0);
 
       me.txtPrecioTotal.val(total);
-  
 
       $(".js-btn-edit").click(function (e) {
         e.preventDefault();

@@ -22,6 +22,7 @@ public class WebSecurityConfiguration {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf().disable()
         .authorizeHttpRequests(a -> a.requestMatchers("/login/**").permitAll()
+            .requestMatchers("/carta").permitAll()
             .requestMatchers("/configuracion/mesa/obtener",
                 "/configuracion/plato/obtener",
                 "/configuracion/categoria-plato/obtener")
