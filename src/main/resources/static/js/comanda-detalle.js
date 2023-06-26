@@ -616,9 +616,9 @@ const ViewCore = function () {
               </button>
             </td>`,
           `<td>
-                <button class="btn btn-danger btn-sm js-btn-delete">
-                  <i class="bi bi-trash-fill"></i>    
-                </button>
+              <button class="btn btn-danger btn-sm js-btn-delete">
+                <i class="bi bi-trash-fill"></i>    
+              </button>
             </td>`,
         ];
 
@@ -655,6 +655,11 @@ const ViewCore = function () {
             <td
             class="js-total"
             >${plato.precio * plato.cantidad}</td>
+            <td>
+              <button class="btn btn-primary btn-sm js-btn-info">
+                <i class="bi bi-info-square-fill"></i>
+              </button>
+            </td>
             ${obtenerControler()}
           </tr>`);
         });
@@ -686,6 +691,15 @@ const ViewCore = function () {
           }, 0)
         );
       });
+
+      $(".js-btn-info").click(function (e) {
+        e.preventDefault();
+        const id = $(this).parents("tr").data("id");
+
+        const plato = me.listaDeEnvioPlatos.find((plato) => plato.id == id);
+        me.modalObservacion(plato);
+        console.log(me.listaDeEnvioPlatos);
+      });
     },
     showError: function (mesage) {
       return ` <div 
@@ -696,6 +710,18 @@ const ViewCore = function () {
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"
                                     aria-label="Close"></button>
    </div>`;
+    },
+    modalObservacion: function (plato) {
+      const contentModal = {
+        header: `<i class="icon text-center text-link bi bi-info-circle-fill"></i>
+						<h4 class="modal-title text-center" id="modal-prototype-label">INFORMACIÓN DEL ${plato.nombre.toUpperCase()}</h4>`,
+        body: `<p class="text-center m-0"><b>Observación:</b> ${
+          plato.observacion || "Sin observación"
+        }</p>`,
+        footer: `<button data-bs-dismiss="modal" aria-label="Close" class="w-100 btn btn-primary">CANCELAR</button>`,
+      };
+
+      showModal(contentModal);
     },
   };
 };
