@@ -523,6 +523,7 @@ export const ViewCoreFactura = function () {
 
       this.total = total;
       this.faltante = this.total;
+      this.subTotalVal = this.convertirNumero(subTotal.toFixed(2));
       this.txtpago.text(this.pago.toFixed(2));
       this.subtotal.text(subTotal.toFixed(2));
       this.txtDescuento.text(this.descuentoSave.toFixed(2));
@@ -606,8 +607,6 @@ export const ViewCoreFactura = function () {
 
       }
 
-
-
       const data = {
         precioTotalPedido: this.total,
         idTipoComprobante: this.cboTipoFactura.val(),
@@ -624,6 +623,7 @@ export const ViewCoreFactura = function () {
         igv: this.igvValue,
         subTotal: this.subTotalVal,
       };
+      
 
       $.ajax({
         type: "POST",
